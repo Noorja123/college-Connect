@@ -20,6 +20,11 @@ if (!process.env.MONGODB_URI || process.env.MONGODB_URI.includes('<your_username
     .catch((err) => console.error('❌ Error connecting to MongoDB:', err));
 }
 
+// Simple Root Route
+app.get("/", (req, res) => {
+  res.send("API is running 🚀");
+});
+
 // Mount the API Routes
 app.use('/api', apiRoutes);
 
