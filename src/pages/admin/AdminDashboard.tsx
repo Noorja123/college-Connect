@@ -6,6 +6,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, 
 
 const AdminDashboard: React.FC = () => {
   const { MOCK_USERS, MOCK_STUDENTS, MOCK_TEACHERS, MOCK_COURSES, MOCK_SUBJECTS, MOCK_ASSIGNMENTS, MOCK_SUBMISSIONS, MOCK_ATTENDANCE } = useAppDb();
+
   const stats = [
     { label: 'Students', value: MOCK_STUDENTS.length, icon: <Users className="w-6 h-6" />, color: 'hsl(215 60% 50%)' },
     { label: 'Teachers', value: MOCK_TEACHERS.length, icon: <GraduationCap className="w-6 h-6" />, color: 'hsl(162 63% 41%)' },

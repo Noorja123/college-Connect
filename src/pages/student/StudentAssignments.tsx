@@ -5,6 +5,8 @@ import { useAppDb } from '@/contexts/DataContext';
 import { Download, Upload, CheckCircle } from 'lucide-react';
 
 const StudentAssignments: React.FC = () => {
+  const { MOCK_USERS, MOCK_STUDENTS, MOCK_TEACHERS, MOCK_COURSES, MOCK_SUBJECTS, MOCK_ASSIGNMENTS, MOCK_SUBMISSIONS, MOCK_ATTENDANCE } = useAppDb();
+
   const { user } = useAuth();
   const student = MOCK_STUDENTS.find(s => s.userId === user?.id);
   const [submitted, setSubmitted] = useState<Record<string, boolean>>({});
@@ -16,12 +18,10 @@ const StudentAssignments: React.FC = () => {
   });
 
   const getSubmission = (assignmentId: string) => {
-  const { MOCK_USERS, MOCK_STUDENTS, MOCK_TEACHERS, MOCK_COURSES, MOCK_SUBJECTS, MOCK_ASSIGNMENTS, MOCK_SUBMISSIONS, MOCK_ATTENDANCE } = useAppDb();
     return MOCK_SUBMISSIONS.find(s => s.assignmentId === assignmentId && s.studentId === student?.id);
   };
 
   const handleSubmit = (assignmentId: string) => {
-  const { MOCK_USERS, MOCK_STUDENTS, MOCK_TEACHERS, MOCK_COURSES, MOCK_SUBJECTS, MOCK_ASSIGNMENTS, MOCK_SUBMISSIONS, MOCK_ATTENDANCE } = useAppDb();
     setSubmitted({ ...submitted, [assignmentId]: true });
   };
 

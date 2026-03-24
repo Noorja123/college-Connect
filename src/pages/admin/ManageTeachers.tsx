@@ -4,6 +4,8 @@ import { useAppDb } from '@/contexts/DataContext';
 import { Plus, X, Pencil, Trash2, Save } from 'lucide-react';
 
 const ManageTeachers: React.FC = () => {
+  const { MOCK_USERS, MOCK_STUDENTS, MOCK_TEACHERS, MOCK_COURSES, MOCK_SUBJECTS, MOCK_ASSIGNMENTS, MOCK_SUBMISSIONS, MOCK_ATTENDANCE } = useAppDb();
+
   const [teachers, setTeachers] = useState(MOCK_TEACHERS);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ name: '', email: '', department: '', subjects: '' });
@@ -11,7 +13,6 @@ const ManageTeachers: React.FC = () => {
   const [editForm, setEditForm] = useState({ name: '', email: '', department: '', subjects: '' });
 
   const handleCreate = (e: React.FormEvent) => {
-  const { MOCK_USERS, MOCK_STUDENTS, MOCK_TEACHERS, MOCK_COURSES, MOCK_SUBJECTS, MOCK_ASSIGNMENTS, MOCK_SUBMISSIONS, MOCK_ATTENDANCE } = useAppDb();
     e.preventDefault();
     setTeachers([...teachers, {
       id: `t${Date.now()}`, userId: String(Date.now()),
@@ -24,13 +25,11 @@ const ManageTeachers: React.FC = () => {
   };
 
   const startEdit = (t: typeof teachers[0]) => {
-  const { MOCK_USERS, MOCK_STUDENTS, MOCK_TEACHERS, MOCK_COURSES, MOCK_SUBJECTS, MOCK_ASSIGNMENTS, MOCK_SUBMISSIONS, MOCK_ATTENDANCE } = useAppDb();
     setEditId(t.id);
     setEditForm({ name: t.name, email: t.email, department: t.department, subjects: t.subjects.join(', ') });
   };
 
   const saveEdit = (id: string) => {
-  const { MOCK_USERS, MOCK_STUDENTS, MOCK_TEACHERS, MOCK_COURSES, MOCK_SUBJECTS, MOCK_ASSIGNMENTS, MOCK_SUBMISSIONS, MOCK_ATTENDANCE } = useAppDb();
     setTeachers(teachers.map(t => t.id === id ? {
       ...t, name: editForm.name, email: editForm.email, department: editForm.department,
       subjects: editForm.subjects.split(',').map(s => s.trim()).filter(Boolean),

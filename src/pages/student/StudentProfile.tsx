@@ -5,6 +5,8 @@ import { useAppDb } from '@/contexts/DataContext';
 import { User, Mail, BookOpen, Building2, Calendar, Hash, Pencil, Save, X } from 'lucide-react';
 
 const StudentProfile: React.FC = () => {
+  const { MOCK_USERS, MOCK_STUDENTS, MOCK_TEACHERS, MOCK_COURSES, MOCK_SUBJECTS, MOCK_ASSIGNMENTS, MOCK_SUBMISSIONS, MOCK_ATTENDANCE } = useAppDb();
+
   const { user, updateProfile } = useAuth();
   const student = MOCK_STUDENTS.find(s => s.userId === user?.id);
   const [editing, setEditing] = useState(false);
@@ -16,7 +18,6 @@ const StudentProfile: React.FC = () => {
   }
 
   const handleSave = () => {
-  const { MOCK_USERS, MOCK_STUDENTS, MOCK_TEACHERS, MOCK_COURSES, MOCK_SUBJECTS, MOCK_ASSIGNMENTS, MOCK_SUBMISSIONS, MOCK_ATTENDANCE } = useAppDb();
     updateProfile({ name: editName, email: editEmail });
     // Also update mock student
     student.name = editName;
@@ -25,7 +26,6 @@ const StudentProfile: React.FC = () => {
   };
 
   const handleCancel = () => {
-  const { MOCK_USERS, MOCK_STUDENTS, MOCK_TEACHERS, MOCK_COURSES, MOCK_SUBJECTS, MOCK_ASSIGNMENTS, MOCK_SUBMISSIONS, MOCK_ATTENDANCE } = useAppDb();
     setEditName(user?.name || '');
     setEditEmail(user?.email || '');
     setEditing(false);

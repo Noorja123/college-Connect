@@ -5,6 +5,7 @@ import { useAppDb } from '@/contexts/DataContext';
 
 const StudentGrades: React.FC = () => {
   const { MOCK_USERS, MOCK_STUDENTS, MOCK_TEACHERS, MOCK_COURSES, MOCK_SUBJECTS, MOCK_ASSIGNMENTS, MOCK_SUBMISSIONS, MOCK_ATTENDANCE } = useAppDb();
+
   const { user } = useAuth();
   const student = MOCK_STUDENTS.find(s => s.userId === user?.id);
   const myGrades = MOCK_SUBMISSIONS.filter(s => s.studentId === student?.id && s.status === 'graded');

@@ -5,6 +5,8 @@ import { useAppDb } from '@/contexts/DataContext';
 import { Plus, X, FileText, CheckCircle } from 'lucide-react';
 
 const TeacherAssignments: React.FC = () => {
+  const { MOCK_USERS, MOCK_STUDENTS, MOCK_TEACHERS, MOCK_COURSES, MOCK_SUBJECTS, MOCK_ASSIGNMENTS, MOCK_SUBMISSIONS, MOCK_ATTENDANCE } = useAppDb();
+
   const { user } = useAuth();
   const teacher = MOCK_TEACHERS.find(t => t.userId === user?.id);
   const [assignments, setAssignments] = useState(MOCK_ASSIGNMENTS.filter(a => a.teacherName === user?.name));
@@ -15,7 +17,6 @@ const TeacherAssignments: React.FC = () => {
   const [gradeForm, setGradeForm] = useState({ grade: 0, feedback: '' });
 
   const handleCreate = (e: React.FormEvent) => {
-  const { MOCK_USERS, MOCK_STUDENTS, MOCK_TEACHERS, MOCK_COURSES, MOCK_SUBJECTS, MOCK_ASSIGNMENTS, MOCK_SUBMISSIONS, MOCK_ATTENDANCE } = useAppDb();
     e.preventDefault();
     const newAssignment: typeof assignments[0] = {
       id: `a${Date.now()}`,
@@ -30,7 +31,6 @@ const TeacherAssignments: React.FC = () => {
   };
 
   const getSubmissionsForAssignment = (assignmentId: string) => {
-  const { MOCK_USERS, MOCK_STUDENTS, MOCK_TEACHERS, MOCK_COURSES, MOCK_SUBJECTS, MOCK_ASSIGNMENTS, MOCK_SUBMISSIONS, MOCK_ATTENDANCE } = useAppDb();
     return submissions.filter(s => s.assignmentId === assignmentId);
   };
 

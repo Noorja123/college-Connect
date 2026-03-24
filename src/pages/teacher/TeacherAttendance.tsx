@@ -4,6 +4,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useAppDb } from '@/contexts/DataContext';
 
 const TeacherAttendance: React.FC = () => {
+  const { MOCK_USERS, MOCK_STUDENTS, MOCK_TEACHERS, MOCK_COURSES, MOCK_SUBJECTS, MOCK_ASSIGNMENTS, MOCK_SUBMISSIONS, MOCK_ATTENDANCE } = useAppDb();
+
   const { user } = useAuth();
   const teacher = MOCK_TEACHERS.find(t => t.userId === user?.id);
   const subjects = MOCK_SUBJECTS.filter(s => teacher?.subjects.includes(s.name));
@@ -19,7 +21,6 @@ const TeacherAttendance: React.FC = () => {
   });
 
   const handleSave = () => {
-  const { MOCK_USERS, MOCK_STUDENTS, MOCK_TEACHERS, MOCK_COURSES, MOCK_SUBJECTS, MOCK_ASSIGNMENTS, MOCK_SUBMISSIONS, MOCK_ATTENDANCE } = useAppDb();
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
   };

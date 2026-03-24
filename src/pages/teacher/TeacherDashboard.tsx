@@ -6,6 +6,7 @@ import { BookOpen, FileText, Users, ClipboardCheck } from 'lucide-react';
 
 const TeacherDashboard: React.FC = () => {
   const { MOCK_USERS, MOCK_STUDENTS, MOCK_TEACHERS, MOCK_COURSES, MOCK_SUBJECTS, MOCK_ASSIGNMENTS, MOCK_SUBMISSIONS, MOCK_ATTENDANCE } = useAppDb();
+
   const { user } = useAuth();
   const teacher = MOCK_TEACHERS.find(t => t.userId === user?.id);
 

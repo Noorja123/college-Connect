@@ -4,6 +4,8 @@ import { useAppDb } from '@/contexts/DataContext';
 import { Plus, X, Pencil, Trash2, Save } from 'lucide-react';
 
 const ManageStudents: React.FC = () => {
+  const { MOCK_USERS, MOCK_STUDENTS, MOCK_TEACHERS, MOCK_COURSES, MOCK_SUBJECTS, MOCK_ASSIGNMENTS, MOCK_SUBMISSIONS, MOCK_ATTENDANCE } = useAppDb();
+
   const [students, setStudents] = useState(MOCK_STUDENTS);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ name: '', email: '', department: '', course: '', semester: 1 });
@@ -11,7 +13,6 @@ const ManageStudents: React.FC = () => {
   const [editForm, setEditForm] = useState({ name: '', email: '', department: '', course: '', semester: 1 });
 
   const handleCreate = (e: React.FormEvent) => {
-  const { MOCK_USERS, MOCK_STUDENTS, MOCK_TEACHERS, MOCK_COURSES, MOCK_SUBJECTS, MOCK_ASSIGNMENTS, MOCK_SUBMISSIONS, MOCK_ATTENDANCE } = useAppDb();
     e.preventDefault();
     setStudents([...students, {
       id: `st${Date.now()}`, userId: String(Date.now()),
@@ -23,13 +24,11 @@ const ManageStudents: React.FC = () => {
   };
 
   const startEdit = (s: typeof students[0]) => {
-  const { MOCK_USERS, MOCK_STUDENTS, MOCK_TEACHERS, MOCK_COURSES, MOCK_SUBJECTS, MOCK_ASSIGNMENTS, MOCK_SUBMISSIONS, MOCK_ATTENDANCE } = useAppDb();
     setEditId(s.id);
     setEditForm({ name: s.name, email: s.email, department: s.department, course: s.course, semester: s.semester });
   };
 
   const saveEdit = (id: string) => {
-  const { MOCK_USERS, MOCK_STUDENTS, MOCK_TEACHERS, MOCK_COURSES, MOCK_SUBJECTS, MOCK_ASSIGNMENTS, MOCK_SUBMISSIONS, MOCK_ATTENDANCE } = useAppDb();
     setStudents(students.map(s => s.id === id ? { ...s, ...editForm } : s));
     setEditId(null);
   };

@@ -6,6 +6,8 @@ import { Plus, X, Trash2, UserPlus, CheckCircle } from 'lucide-react';
 import type { UserRole } from '@/types/models';
 
 const ManageUsers: React.FC = () => {
+  const { MOCK_USERS, MOCK_STUDENTS, MOCK_TEACHERS, MOCK_COURSES, MOCK_SUBJECTS, MOCK_ASSIGNMENTS, MOCK_SUBMISSIONS, MOCK_ATTENDANCE } = useAppDb();
+
   const { createUser } = useAuth();
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ name: '', email: '', password: '', role: 'student' as UserRole });
@@ -16,7 +18,6 @@ const ManageUsers: React.FC = () => {
   const users = MOCK_USERS.map(({ password, ...u }) => u);
 
   const handleCreate = (e: React.FormEvent) => {
-  const { MOCK_USERS, MOCK_STUDENTS, MOCK_TEACHERS, MOCK_COURSES, MOCK_SUBJECTS, MOCK_ASSIGNMENTS, MOCK_SUBMISSIONS, MOCK_ATTENDANCE } = useAppDb();
     e.preventDefault();
     setError('');
     setSuccess('');
@@ -36,7 +37,6 @@ const ManageUsers: React.FC = () => {
   };
 
   const handleDelete = (id: string) => {
-  const { MOCK_USERS, MOCK_STUDENTS, MOCK_TEACHERS, MOCK_COURSES, MOCK_SUBJECTS, MOCK_ASSIGNMENTS, MOCK_SUBMISSIONS, MOCK_ATTENDANCE } = useAppDb();
     const idx = MOCK_USERS.findIndex(u => u.id === id);
     if (idx !== -1) {
       MOCK_USERS.splice(idx, 1);
