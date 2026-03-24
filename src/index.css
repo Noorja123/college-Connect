@@ -1,0 +1,139 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap');
+
+@layer base {
+  :root {
+    --background: 210 20% 98%;
+    --foreground: 215 25% 12%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 215 25% 12%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 215 25% 12%;
+
+    --primary: 215 60% 22%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 210 20% 95%;
+    --secondary-foreground: 215 25% 12%;
+
+    --muted: 210 15% 93%;
+    --muted-foreground: 215 12% 50%;
+
+    --accent: 162 63% 41%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 214 20% 90%;
+    --input: 214 20% 90%;
+    --ring: 215 60% 22%;
+
+    --radius: 0.75rem;
+
+    --sidebar-bg: 215 60% 16%;
+    --sidebar-fg: 210 30% 85%;
+    --sidebar-active: 162 63% 41%;
+    --sidebar-hover: 215 50% 22%;
+
+    --chart-1: 162 63% 41%;
+    --chart-2: 215 60% 50%;
+    --chart-3: 340 65% 55%;
+    --chart-4: 45 90% 55%;
+    --chart-5: 280 55% 55%;
+
+    --font-display: 'Playfair Display', serif;
+    --font-body: 'Inter', system-ui, sans-serif;
+
+    --shadow-card: 0 1px 3px 0 rgba(0,0,0,0.04), 0 1px 2px -1px rgba(0,0,0,0.04);
+    --shadow-card-hover: 0 4px 12px -2px rgba(0,0,0,0.08), 0 2px 6px -2px rgba(0,0,0,0.04);
+    --shadow-lg: 0 10px 25px -5px rgba(0,0,0,0.08), 0 8px 10px -6px rgba(0,0,0,0.04);
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-body);
+  }
+  h1, h2, h3 {
+    font-family: var(--font-body);
+  }
+}
+
+@layer components {
+  .stat-card {
+    @apply bg-card rounded-xl p-5 flex items-center gap-4 transition-shadow duration-200;
+    box-shadow: var(--shadow-card);
+  }
+  .stat-card:hover {
+    box-shadow: var(--shadow-card-hover);
+  }
+  .stat-icon {
+    @apply w-12 h-12 rounded-xl flex items-center justify-center text-xl shrink-0;
+  }
+  .page-title {
+    @apply text-2xl font-bold tracking-tight;
+  }
+  .section-title {
+    @apply text-lg font-semibold tracking-tight;
+  }
+  .table-header-cell {
+    @apply text-xs font-semibold uppercase tracking-wider text-muted-foreground px-4 py-3 text-left;
+  }
+  .table-cell {
+    @apply px-4 py-3 text-sm;
+  }
+  .badge-present {
+    @apply inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium;
+    background: hsl(162 63% 41% / 0.12);
+    color: hsl(162 63% 32%);
+  }
+  .badge-absent {
+    @apply inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium;
+    background: hsl(0 72% 51% / 0.12);
+    color: hsl(0 72% 40%);
+  }
+  .badge-late {
+    @apply inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium;
+    background: hsl(45 90% 55% / 0.15);
+    color: hsl(35 80% 35%);
+  }
+  .badge-active {
+    @apply inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium;
+    background: hsl(162 63% 41% / 0.12);
+    color: hsl(162 63% 32%);
+  }
+  .badge-graded {
+    @apply inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium;
+    background: hsl(215 60% 50% / 0.12);
+    color: hsl(215 60% 35%);
+  }
+  .badge-submitted {
+    @apply inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium;
+    background: hsl(45 90% 55% / 0.15);
+    color: hsl(35 80% 35%);
+  }
+  .input-field {
+    @apply w-full px-3.5 py-2.5 rounded-lg border border-border bg-background text-sm
+           focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary
+           transition-all duration-200 placeholder:text-muted-foreground;
+  }
+}
