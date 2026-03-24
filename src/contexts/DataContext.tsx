@@ -5,6 +5,7 @@ const DataContext = createContext<any>(null);
 
 export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [data, setData] = useState<any>(null);
+  const [errorMsg, setErrorMsg] = useState<string>("");
 
   useEffect(() => {
     async function loadData() {
@@ -28,12 +29,23 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           MOCK_SUBMISSIONS: submissions || [],
           MOCK_ATTENDANCE: attendance || []
         });
-      } catch (err) {
+      } catch (err: any) {
         console.error("Failed to load DB data:", err);
+        setErrorMsg(err.message || String(err));
       }
     }
     loadData();
   }, []);
+
+  if (errorMsg) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-neutral-900 text-red-500 font-sans p-8">
+        <h2 className="text-2xl font-bold mb-4">Database Connection Failed</h2>
+        <p className="bg-neutral-800 p-4 rounded text-mono">{errorMsg}</p>
+        <p className="mt-4 text-white">Please check your Express server.</p>
+      </div>
+    );
+  }
 
   if (!data) {
     return (
