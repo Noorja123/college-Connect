@@ -45,6 +45,11 @@ Object.entries(models).forEach(([name, Model]) => {
 
   // POST create
   router.post(`/${name}`, async (req, res) => {
+    // Backend Validation
+    if (!req.body || Object.keys(req.body).length === 0) {
+      return res.status(400).json({ error: "Missing required valid data fields" });
+    }
+    
     try {
       const data = new Model(req.body);
       const saved = await data.save();

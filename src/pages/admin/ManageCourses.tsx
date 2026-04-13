@@ -1,22 +1,42 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { useAppDb } from '@/contexts/DataContext';
+import { api, mutate } from '@/lib/api';
 import { Plus, X, Pencil, Trash2, Save } from 'lucide-react';
 
 const ManageCourses: React.FC = () => {
   const { MOCK_USERS, MOCK_STUDENTS, MOCK_TEACHERS, MOCK_COURSES, MOCK_SUBJECTS, MOCK_ASSIGNMENTS, MOCK_SUBMISSIONS, MOCK_ATTENDANCE } = useAppDb();
 
-  const [courses, setCourses] = useState(MOCK_COURSES);
+  const [courses, setCourses] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchCourses = () => {
+    setLoading(true);
+    api.getCourses().then((data) => {
+      setCourses(data.map((c: any) => ({ ...c, id: c._id || c.id })));
+    })
+    .catch(() => alert("Failed to load courses data"))
+    .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    fetchCourses();
+  }, []);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ name: '', code: '', department: '', duration: 8 });
   const [editId, setEditId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState({ name: '', code: '', department: '', duration: 8 });
 
-  const handleCreate = (e: React.FormEvent) => {
+  const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
-    setCourses([...courses, { id: `c${Date.now()}`, ...form }]);
-    setForm({ name: '', code: '', department: '', duration: 8 });
-    setShowForm(false);
+    try {
+      await mutate.post('courses', form);
+      fetchCourses();
+      setForm({ name: '', code: '', department: '', duration: 8 });
+      setShowForm(false);
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const startEdit = (c: typeof courses[0]) => {
@@ -24,12 +44,24 @@ const ManageCourses: React.FC = () => {
     setEditForm({ name: c.name, code: c.code, department: c.department, duration: c.duration });
   };
 
-  const saveEdit = (id: string) => {
-    setCourses(courses.map(c => c.id === id ? { ...c, ...editForm } : c));
-    setEditId(null);
+  const saveEdit = async (id: string) => {
+    try {
+      await mutate.put('courses', id, editForm);
+      fetchCourses();
+      setEditId(null);
+    } catch (err) {
+      console.error(err);
+    }
   };
 
-  const handleDelete = (id: string) => setCourses(courses.filter(c => c.id !== id));
+  const handleDelete = async (id: string) => {
+    try {
+      await mutate.delete('courses', id);
+      fetchCourses();
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   return (
     <DashboardLayout>
@@ -53,6 +85,9 @@ const ManageCourses: React.FC = () => {
         </form>
       )}
 
+      {loading ? (
+        <div className="flex justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-t-2 border-primary"></div></div>
+      ) : (
       <div className="bg-card rounded-xl shadow-card overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -101,6 +136,7 @@ const ManageCourses: React.FC = () => {
           </table>
         </div>
       </div>
+      )}
     </DashboardLayout>
   );
 };

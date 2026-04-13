@@ -1,27 +1,47 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { useAppDb } from '@/contexts/DataContext';
+import { api, mutate } from '@/lib/api';
 import { Plus, X, Pencil, Trash2, Save } from 'lucide-react';
 
 const ManageTeachers: React.FC = () => {
   const { MOCK_USERS, MOCK_STUDENTS, MOCK_TEACHERS, MOCK_COURSES, MOCK_SUBJECTS, MOCK_ASSIGNMENTS, MOCK_SUBMISSIONS, MOCK_ATTENDANCE } = useAppDb();
 
-  const [teachers, setTeachers] = useState(MOCK_TEACHERS);
+  const [teachers, setTeachers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchTeachers = () => {
+    setLoading(true);
+    api.getTeachers().then((data) => {
+      setTeachers(data.map((t: any) => ({ ...t, id: t._id || t.id })));
+    })
+    .catch(() => alert("Failed to load teachers data"))
+    .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    fetchTeachers();
+  }, []);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ name: '', email: '', department: '', subjects: '' });
   const [editId, setEditId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState({ name: '', email: '', department: '', subjects: '' });
 
-  const handleCreate = (e: React.FormEvent) => {
+  const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
-    setTeachers([...teachers, {
-      id: `t${Date.now()}`, userId: String(Date.now()),
-      teacherId: `TCH-2024-${String(teachers.length + 1).padStart(3, '0')}`,
-      name: form.name, email: form.email, department: form.department,
-      subjects: form.subjects.split(',').map(s => s.trim()).filter(Boolean),
-    }]);
-    setForm({ name: '', email: '', department: '', subjects: '' });
-    setShowForm(false);
+    try {
+      await mutate.post('teachers', {
+        userId: String(Date.now()),
+        teacherId: `TCH-2024-${String(teachers.length + 1).padStart(3, '0')}`,
+        name: form.name, email: form.email, department: form.department,
+        subjects: form.subjects.split(',').map(s => s.trim()).filter(Boolean),
+      });
+      fetchTeachers();
+      setForm({ name: '', email: '', department: '', subjects: '' });
+      setShowForm(false);
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const startEdit = (t: typeof teachers[0]) => {
@@ -29,15 +49,27 @@ const ManageTeachers: React.FC = () => {
     setEditForm({ name: t.name, email: t.email, department: t.department, subjects: t.subjects.join(', ') });
   };
 
-  const saveEdit = (id: string) => {
-    setTeachers(teachers.map(t => t.id === id ? {
-      ...t, name: editForm.name, email: editForm.email, department: editForm.department,
-      subjects: editForm.subjects.split(',').map(s => s.trim()).filter(Boolean),
-    } : t));
-    setEditId(null);
+  const saveEdit = async (id: string) => {
+    try {
+      await mutate.put('teachers', id, {
+        name: editForm.name, email: editForm.email, department: editForm.department,
+        subjects: editForm.subjects.split(',').map(s => s.trim()).filter(Boolean),
+      });
+      fetchTeachers();
+      setEditId(null);
+    } catch (err) {
+      console.error(err);
+    }
   };
 
-  const handleDelete = (id: string) => setTeachers(teachers.filter(t => t.id !== id));
+  const handleDelete = async (id: string) => {
+    try {
+      await mutate.delete('teachers', id);
+      fetchTeachers();
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   return (
     <DashboardLayout>
@@ -62,6 +94,9 @@ const ManageTeachers: React.FC = () => {
         </form>
       )}
 
+      {loading ? (
+        <div className="flex justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-t-2 border-primary"></div></div>
+      ) : (
       <div className="bg-card rounded-xl shadow-card overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -112,6 +147,7 @@ const ManageTeachers: React.FC = () => {
           </table>
         </div>
       </div>
+      )}
     </DashboardLayout>
   );
 };

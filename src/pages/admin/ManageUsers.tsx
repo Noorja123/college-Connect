@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAppDb } from '@/contexts/DataContext';
+import { api, mutate } from '@/lib/api';
 import { Plus, X, Trash2, UserPlus, CheckCircle } from 'lucide-react';
 import type { UserRole } from '@/types/models';
 
@@ -15,9 +16,26 @@ const ManageUsers: React.FC = () => {
   const [error, setError] = useState('');
   const [, forceUpdate] = useState(0);
 
-  const users = MOCK_USERS.map(({ password, ...u }) => u);
+  const [users, setUsers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const handleCreate = (e: React.FormEvent) => {
+  const fetchUsers = () => {
+    setLoading(true);
+    api.getUsers().then((data) => {
+      setUsers(data.map((u: any) => {
+        const { password, ...rest } = u;
+        return { ...rest, id: u._id || u.id };
+      }));
+    })
+    .catch(() => alert("Failed to load users data"))
+    .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setSuccess('');
@@ -25,22 +43,24 @@ const ManageUsers: React.FC = () => {
       setError('Password must be at least 6 characters');
       return;
     }
-    const result = createUser(form.name, form.email, form.password, form.role);
+    const result = await createUser(form.name, form.email, form.password, form.role);
     if (result.success) {
       setSuccess(`User "${form.name}" created as ${form.role}`);
       setForm({ name: '', email: '', password: '', role: 'student' });
       setShowForm(false);
       forceUpdate(n => n + 1);
+      fetchUsers();
     } else {
       setError(result.error || 'Failed to create user');
     }
   };
 
-  const handleDelete = (id: string) => {
-    const idx = MOCK_USERS.findIndex(u => u.id === id);
-    if (idx !== -1) {
-      MOCK_USERS.splice(idx, 1);
-      forceUpdate(n => n + 1);
+  const handleDelete = async (id: string) => {
+    try {
+      await mutate.delete('users', id);
+      fetchUsers();
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -84,6 +104,9 @@ const ManageUsers: React.FC = () => {
         </form>
       )}
 
+      {loading ? (
+        <div className="flex justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-t-2 border-primary"></div></div>
+      ) : (
       <div className="bg-card rounded-xl shadow-card overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -118,6 +141,7 @@ const ManageUsers: React.FC = () => {
           </table>
         </div>
       </div>
+      )}
     </DashboardLayout>
   );
 };

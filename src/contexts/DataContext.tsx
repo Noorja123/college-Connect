@@ -19,15 +19,17 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const submissions = await api.getSubmissions();
         const attendance = await api.getAttendance();
 
+        const normalize = (arr: any[]) => (arr || []).map(item => ({ ...item, id: item._id || item.id }));
+
         setData({
-          MOCK_USERS: users || [],
-          MOCK_STUDENTS: students || [],
-          MOCK_TEACHERS: teachers || [],
-          MOCK_COURSES: courses || [],
-          MOCK_SUBJECTS: subjects || [],
-          MOCK_ASSIGNMENTS: assignments || [],
-          MOCK_SUBMISSIONS: submissions || [],
-          MOCK_ATTENDANCE: attendance || []
+          MOCK_USERS: normalize(users),
+          MOCK_STUDENTS: normalize(students),
+          MOCK_TEACHERS: normalize(teachers),
+          MOCK_COURSES: normalize(courses),
+          MOCK_SUBJECTS: normalize(subjects),
+          MOCK_ASSIGNMENTS: normalize(assignments),
+          MOCK_SUBMISSIONS: normalize(submissions),
+          MOCK_ATTENDANCE: normalize(attendance)
         });
       } catch (err: any) {
         console.error("Failed to load DB data:", err);

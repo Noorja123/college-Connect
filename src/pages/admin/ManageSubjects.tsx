@@ -1,22 +1,42 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { useAppDb } from '@/contexts/DataContext';
+import { api, mutate } from '@/lib/api';
 import { Plus, X, Pencil, Trash2, Save } from 'lucide-react';
 
 const ManageSubjects: React.FC = () => {
   const { MOCK_USERS, MOCK_STUDENTS, MOCK_TEACHERS, MOCK_COURSES, MOCK_SUBJECTS, MOCK_ASSIGNMENTS, MOCK_SUBMISSIONS, MOCK_ATTENDANCE } = useAppDb();
 
-  const [subjects, setSubjects] = useState(MOCK_SUBJECTS);
+  const [subjects, setSubjects] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchSubjects = () => {
+    setLoading(true);
+    api.getSubjects().then((data) => {
+      setSubjects(data.map((s: any) => ({ ...s, id: s._id || s.id })));
+    })
+    .catch(() => alert("Failed to load subjects data"))
+    .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    fetchSubjects();
+  }, []);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ name: '', code: '', courseName: '', semester: 1, credits: 3 });
   const [editId, setEditId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState({ name: '', code: '', courseName: '', semester: 1, credits: 3 });
 
-  const handleCreate = (e: React.FormEvent) => {
+  const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubjects([...subjects, { id: `s${Date.now()}`, ...form }]);
-    setForm({ name: '', code: '', courseName: '', semester: 1, credits: 3 });
-    setShowForm(false);
+    try {
+      await mutate.post('subjects', form);
+      fetchSubjects();
+      setForm({ name: '', code: '', courseName: '', semester: 1, credits: 3 });
+      setShowForm(false);
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const startEdit = (s: typeof subjects[0]) => {
@@ -24,12 +44,24 @@ const ManageSubjects: React.FC = () => {
     setEditForm({ name: s.name, code: s.code, courseName: s.courseName, semester: s.semester, credits: s.credits });
   };
 
-  const saveEdit = (id: string) => {
-    setSubjects(subjects.map(s => s.id === id ? { ...s, ...editForm } : s));
-    setEditId(null);
+  const saveEdit = async (id: string) => {
+    try {
+      await mutate.put('subjects', id, editForm);
+      fetchSubjects();
+      setEditId(null);
+    } catch (err) {
+      console.error(err);
+    }
   };
 
-  const handleDelete = (id: string) => setSubjects(subjects.filter(s => s.id !== id));
+  const handleDelete = async (id: string) => {
+    try {
+      await mutate.delete('subjects', id);
+      fetchSubjects();
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   return (
     <DashboardLayout>
@@ -59,6 +91,9 @@ const ManageSubjects: React.FC = () => {
         </form>
       )}
 
+      {loading ? (
+        <div className="flex justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-t-2 border-primary"></div></div>
+      ) : (
       <div className="bg-card rounded-xl shadow-card overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -114,6 +149,7 @@ const ManageSubjects: React.FC = () => {
           </table>
         </div>
       </div>
+      )}
     </DashboardLayout>
   );
 };

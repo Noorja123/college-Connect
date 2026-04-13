@@ -1,15 +1,16 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
 import type { User, UserRole } from '@/types/models';
 import { useAppDb } from '@/contexts/DataContext';
+import { mutate } from '@/lib/api';
 
 interface AuthContextType {
   user: User | null;
   isLoggedIn: boolean;
   login: (email: string, password: string) => { success: boolean; error?: string };
   logout: () => void;
-  createUser: (name: string, email: string, password: string, role: UserRole) => { success: boolean; error?: string };
-  changePassword: (oldPassword: string, newPassword: string) => { success: boolean; error?: string };
-  updateProfile: (updates: Partial<User>) => void;
+  createUser: (name: string, email: string, password: string, role: UserRole) => Promise<{ success: boolean; error?: string }>;
+  changePassword: (oldPassword: string, newPassword: string) => Promise<{ success: boolean; error?: string }>;
+  updateProfile: (updates: Partial<User>) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -36,30 +37,47 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.removeItem('cms_user');
   }, []);
 
-  const createUser = useCallback((name: string, email: string, password: string, role: UserRole) => {
-    const exists = MOCK_USERS.find(u => u.email === email);
+  const createUser = useCallback(async (name: string, email: string, password: string, role: UserRole) => {
+    const exists = MOCK_USERS.find((u: User) => u.email === email);
     if (exists) return { success: false, error: 'Email already registered' };
-    const newUser = { id: String(Date.now()), name, email, role, password };
-    MOCK_USERS.push(newUser);
-    return { success: true };
-  }, []);
+    try {
+      const newUser = { name, email, role, password };
+      const created = await mutate.post('users', newUser);
+      MOCK_USERS.push({ ...newUser, id: created._id || created.id || String(Date.now()) });
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, error: err.message };
+    }
+  }, [MOCK_USERS]);
 
-  const changePassword = useCallback((oldPassword: string, newPassword: string) => {
+  const changePassword = useCallback(async (oldPassword: string, newPassword: string) => {
     if (!user) return { success: false, error: 'Not logged in' };
-    const found = MOCK_USERS.find(u => u.id === user.id);
+    const found = MOCK_USERS.find((u: User & { password?: string }) => u.id === user.id);
     if (!found || found.password !== oldPassword) return { success: false, error: 'Current password is incorrect' };
-    found.password = newPassword;
-    return { success: true };
-  }, [user]);
+    try {
+      await mutate.put('users', user.id, { ...found, password: newPassword });
+      found.password = newPassword;
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, error: err.message };
+    }
+  }, [user, MOCK_USERS]);
 
-  const updateProfile = useCallback((updates: Partial<User>) => {
+  const updateProfile = useCallback(async (updates: Partial<User>) => {
     if (!user) return;
-    const updated = { ...user, ...updates };
-    setUser(updated);
-    localStorage.setItem('cms_user', JSON.stringify(updated));
-    const mockUser = MOCK_USERS.find(u => u.id === user.id);
-    if (mockUser) Object.assign(mockUser, updates);
-  }, [user]);
+    try {
+      await mutate.put('users', user.id, updates);
+      const updated = { ...user, ...updates };
+      setUser(updated);
+      localStorage.setItem('cms_user', JSON.stringify(updated));
+
+      // Update mock user
+      const mockUser = MOCK_USERS.find(u => u.id === user.id);
+      if (mockUser) Object.assign(mockUser, updates);
+    } catch (err) {
+      console.error('Failed to update profile', err);
+    }
+  }, [user, MOCK_USERS]);
 
   return (
     <AuthContext.Provider value={{ user, isLoggedIn: !!user, login, logout, createUser, changePassword, updateProfile }}>

@@ -1,8 +1,6 @@
 import type { User, Student, Teacher, Course, Subject, Assignment, Submission, AttendanceRecord } from '../types/models';
 
-const API_BASE_URL = 'https://college-connect-3ff3.onrender.com/api';
-
-export const api = {
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5005/api';export const api = {
   // Users
   getUsers: () => fetch(`${API_BASE_URL}/users`).then(res => res.json()) as Promise<User[]>,
   
@@ -27,4 +25,22 @@ export const api = {
   
   // Attendance
   getAttendance: () => fetch(`${API_BASE_URL}/attendance`).then(res => res.json()) as Promise<AttendanceRecord[]>,
+};
+
+export const mutate = {
+  post: (endpoint: string, data: any) => fetch(`${API_BASE_URL}/${endpoint}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  }).then(res => res.json()),
+  
+  put: (endpoint: string, id: string, data: any) => fetch(`${API_BASE_URL}/${endpoint}/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  }).then(res => res.json()),
+  
+  delete: (endpoint: string, id: string) => fetch(`${API_BASE_URL}/${endpoint}/${id}`, {
+    method: 'DELETE'
+  }).then(res => res.json())
 };
