@@ -25,7 +25,16 @@ Object.entries(models).forEach(([name, Model]) => {
   // GET all
   router.get(`/${name}`, async (req, res) => {
     try {
-      const data = await Model.find();
+      // Pagination & optional filtering support
+      const { page = 1, limit = 0 } = req.query; // default to 0 (no limit) to avoid breaking existing clients that assume all data
+      
+      let query = Model.find(req.query.filter ? JSON.parse(req.query.filter) : {});
+      
+      if (limit > 0) {
+        query = query.skip((page - 1) * limit).limit(parseInt(limit));
+      }
+      
+      const data = await query;
       res.json(data);
     } catch (err) {
       res.status(500).json({ error: err.message });
@@ -61,8 +70,21 @@ Object.entries(models).forEach(([name, Model]) => {
 
   // PUT update
   router.put(`/${name}/:id`, async (req, res) => {
+    if (!req.body || Object.keys(req.body).length === 0) {
+      return res.status(400).json({ error: "No data provided for update" });
+    }
+
     try {
-      const updated = await Model.findByIdAndUpdate(req.params.id, req.body, { new: true });
+      const updated = await Model.findByIdAndUpdate(
+        req.params.id, 
+        req.body, 
+        { new: true, runValidators: true }
+      );
+
+      if (!updated) {
+        return res.status(404).json({ error: 'Not found' });
+      }
+
       res.json(updated);
     } catch (err) {
       res.status(400).json({ error: err.message });
@@ -72,7 +94,12 @@ Object.entries(models).forEach(([name, Model]) => {
   // DELETE
   router.delete(`/${name}/:id`, async (req, res) => {
     try {
-      await Model.findByIdAndDelete(req.params.id);
+      const deleted = await Model.findByIdAndDelete(req.params.id);
+
+      if (!deleted) {
+        return res.status(404).json({ error: 'Not found' });
+      }
+
       res.json({ success: true, id: req.params.id });
     } catch (err) {
       res.status(500).json({ error: err.message });
