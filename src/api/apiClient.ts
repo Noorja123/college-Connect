@@ -1,29 +1,27 @@
+import axios from 'axios';
+
 export const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5005/api';
 
-export const apiClient = async (endpoint: string, options: RequestInit = {}) => {
+export const apiClient = async (endpoint: string, options: any = {}) => {
   const token = localStorage.getItem('authToken');
+  const headers = { ...options.headers };
   
-  const headers = new Headers(options.headers || {});
-  headers.set('Content-Type', 'application/json');
   if (token) {
-    headers.set('Authorization', `Bearer ${token}`);
+    headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const response = await fetch(`${BASE_URL}${endpoint}`, {
-    ...options,
-    headers,
-  });
-
-  let data;
   try {
-    data = await response.json();
-  } catch (err) {
-    data = {};
+    const response = await axios({
+      url: `${BASE_URL}${endpoint}`,
+      method: options.method || 'GET',
+      headers,
+      data: options.body ? JSON.parse(options.body) : undefined,
+    });
+    
+    // Auto-unwrap the `{ success, message, data }` response wrapper mandated by backend
+    return response.data.data;
+  } catch (error: any) {
+    const errorMsg = error.response?.data?.message || error.message || 'API Request Failed';
+    throw new Error(errorMsg);
   }
-
-  if (!response.ok) {
-    throw new Error(data.message || data.error || 'Failed to communicate with API');
-  }
-
-  return data;
 };

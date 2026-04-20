@@ -4,6 +4,7 @@ import User from '../models/User.js';
 import Course from '../models/Course.js';
 import Student from '../models/Student.js';
 import Teacher from '../models/Teacher.js';
+import Subject from '../models/Subject.js';
 
 dotenv.config();
 
@@ -30,6 +31,14 @@ const seedDatabase = async () => {
 
     // Create Teacher Profile
     const teacherProfile = new Teacher({ userId: teacherUser._id, department: 'Computer Science', subjects: [] });
+    await teacherProfile.save();
+    
+    // Create Subject
+    const subject = new Subject({ name: 'Intro to Algorithms', courseId: course._id, teacherId: teacherProfile._id });
+    await subject.save();
+    
+    // Push subject reference into teacher model
+    teacherProfile.subjects.push(subject._id);
     await teacherProfile.save();
 
     // Create Student Users

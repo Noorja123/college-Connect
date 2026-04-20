@@ -9,42 +9,46 @@ import { createAssignment, getAssignments, getAssignmentById, updateAssignment, 
 import { createSubmission, getSubmissions, getSubmissionById, updateSubmission, deleteSubmission } from '../controllers/submissionController.js';
 import { createAttendance, getAttendanceRecords, getAttendanceById, updateAttendance, deleteAttendance } from '../controllers/attendanceController.js';
 import { authUser } from '../controllers/authController.js';
+import { protect, adminOnly, teacherOrAdmin } from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
 
-// Auth Routes
+// Auth Routes (Public)
 router.post('/auth/login', authUser);
 
-// User Routes
-router.route('/users').post(createUser).get(getUsers);
-router.route('/users/:id').get(getUserById).put(updateUser).delete(deleteUser);
+// All subsequent routes require valid JWT Auth
+router.use(protect);
 
-// Student Routes
-router.route('/students').post(createStudent).get(getStudents);
-router.route('/students/:id').get(getStudentById).put(updateStudent).delete(deleteStudent);
+// User Routes (Admin only)
+router.route('/users').post(adminOnly, createUser).get(adminOnly, getUsers);
+router.route('/users/:id').get(adminOnly, getUserById).put(adminOnly, updateUser).delete(adminOnly, deleteUser);
 
-// Teacher Routes
-router.route('/teachers').post(createTeacher).get(getTeachers);
-router.route('/teachers/:id').get(getTeacherById).put(updateTeacher).delete(deleteTeacher);
+// Student Profiles
+router.route('/students').post(teacherOrAdmin, createStudent).get(getStudents);
+router.route('/students/:id').get(getStudentById).put(teacherOrAdmin, updateStudent).delete(adminOnly, deleteStudent);
 
-// Course Routes
-router.route('/courses').post(createCourse).get(getCourses);
-router.route('/courses/:id').get(getCourseById).put(updateCourse).delete(deleteCourse);
+// Teacher Profiles
+router.route('/teachers').post(adminOnly, createTeacher).get(getTeachers);
+router.route('/teachers/:id').get(getTeacherById).put(adminOnly, updateTeacher).delete(adminOnly, deleteTeacher);
 
-// Subject Routes
-router.route('/subjects').post(createSubject).get(getSubjects);
-router.route('/subjects/:id').get(getSubjectById).put(updateSubject).delete(deleteSubject);
+// Courses
+router.route('/courses').post(adminOnly, createCourse).get(getCourses);
+router.route('/courses/:id').get(getCourseById).put(adminOnly, updateCourse).delete(adminOnly, deleteCourse);
 
-// Assignment Routes
-router.route('/assignments').post(createAssignment).get(getAssignments);
-router.route('/assignments/:id').get(getAssignmentById).put(updateAssignment).delete(deleteAssignment);
+// Subjects
+router.route('/subjects').post(adminOnly, createSubject).get(getSubjects);
+router.route('/subjects/:id').get(getSubjectById).put(adminOnly, updateSubject).delete(adminOnly, deleteSubject);
 
-// Submission Routes
+// Assignments
+router.route('/assignments').post(teacherOrAdmin, createAssignment).get(getAssignments);
+router.route('/assignments/:id').get(getAssignmentById).put(teacherOrAdmin, updateAssignment).delete(teacherOrAdmin, deleteAssignment);
+
+// Submissions (Students submit, Teachers grade)
 router.route('/submissions').post(createSubmission).get(getSubmissions);
-router.route('/submissions/:id').get(getSubmissionById).put(updateSubmission).delete(deleteSubmission);
+router.route('/submissions/:id').get(getSubmissionById).put(teacherOrAdmin, updateSubmission).delete(teacherOrAdmin, deleteSubmission);
 
-// Attendance Routes
-router.route('/attendance').post(createAttendance).get(getAttendanceRecords);
-router.route('/attendance/:id').get(getAttendanceById).put(updateAttendance).delete(deleteAttendance);
+// Attendance
+router.route('/attendance').post(teacherOrAdmin, createAttendance).get(getAttendanceRecords);
+router.route('/attendance/:id').get(getAttendanceById).put(teacherOrAdmin, updateAttendance).delete(teacherOrAdmin, deleteAttendance);
 
 export default router;
