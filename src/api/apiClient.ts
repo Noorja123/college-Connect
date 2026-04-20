@@ -18,8 +18,14 @@ export const apiClient = async (endpoint: string, options: any = {}) => {
       data: options.body ? JSON.parse(options.body) : undefined,
     });
     
-    // Auto-unwrap the `{ success, message, data }` response wrapper mandated by backend
-    return response.data.data;
+    // Advanced robust unwrap:
+    // If backend returns { success: true, data: [...] } format, extract `data`.
+    // If backend is still running old deployment returning an array `[{...}]`, return it directly.
+    if (response.data && response.data.success !== undefined && response.data.data !== undefined) {
+      return response.data.data;
+    }
+    
+    return response.data;
   } catch (error: any) {
     const errorMsg = error.response?.data?.message || error.message || 'API Request Failed';
     throw new Error(errorMsg);

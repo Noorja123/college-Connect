@@ -12,21 +12,25 @@ export const authUser = async (req, res, next) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) {
-      return res.status(400).json({ message: "Please provide email and password" });
+      return res.status(400).json({ success: false, message: "Please provide email and password", data: null });
     }
     
     const user = await User.findOne({ email, isDeleted: false });
     
     if (user && (await bcrypt.compare(password, user.password))) {
       res.json({
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        token: generateToken(user._id, user.role),
+        success: true,
+        message: "Login successful",
+        data: {
+          _id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          token: generateToken(user._id, user.role),
+        }
       });
     } else {
-      res.status(401).json({ message: "Invalid email or password" });
+      res.status(401).json({ success: false, message: "Invalid email or password", data: null });
     }
   } catch (err) {
     next(err);
