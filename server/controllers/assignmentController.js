@@ -1,10 +1,11 @@
 import Assignment from '../models/Assignment.js';
+import Submission from '../models/Submission.js';
 
 export const createAssignment = async (req, res, next) => {
   try {
-    const { title, subjectId, teacherId, dueDate } = req.body;
+    const { title, subjectId, teacherId, dueDate, status } = req.body;
     if (!title || !subjectId || !teacherId || !dueDate) return res.status(400).json({ success: false, message: "Missing required fields", data: null });
-    const assignment = new Assignment({ title, subjectId, teacherId, dueDate });
+    const assignment = new Assignment({ title, subjectId, teacherId, dueDate, status: status || 'active', createdBy: req.user && req.user._id ? req.user._id : undefined });
     const saved = await assignment.save();
     const populated = await saved.populate(['subjectId', 'teacherId']);
     res.status(201).json({ success: true, message: "Assignment created", data: populated });
@@ -37,7 +38,8 @@ export const getAssignmentById = async (req, res, next) => {
 
 export const updateAssignment = async (req, res, next) => {
   try {
-    const assignment = await Assignment.findOneAndUpdate({ _id: req.params.id, isDeleted: false }, req.body, { new: true, runValidators: true }).populate('subjectId').populate('teacherId');
+    const payload = { ...req.body, updatedBy: req.user && req.user._id ? req.user._id : undefined };
+    const assignment = await Assignment.findOneAndUpdate({ _id: req.params.id, isDeleted: false }, payload, { new: true, runValidators: true }).populate('subjectId').populate('teacherId');
     if (!assignment) return res.status(404).json({ success: false, message: "Assignment not found", data: null });
     res.status(200).json({ success: true, message: "Assignment updated", data: assignment });
   } catch (err) { next(err); }
@@ -45,8 +47,12 @@ export const updateAssignment = async (req, res, next) => {
 
 export const deleteAssignment = async (req, res, next) => {
   try {
-    const assignment = await Assignment.findOneAndUpdate({ _id: req.params.id, isDeleted: false }, { isDeleted: true }, { new: true });
+    const updater = req.user && req.user._id ? req.user._id : undefined;
+    const assignment = await Assignment.findOneAndUpdate({ _id: req.params.id, isDeleted: false }, { isDeleted: true, updatedBy: updater }, { new: true });
     if (!assignment) return res.status(404).json({ success: false, message: "Assignment not found", data: null });
-    res.status(200).json({ success: true, message: "Assignment soft-deleted", data: null });
+    
+    // Cascading soft-delete
+    await Submission.updateMany({ assignmentId: assignment._id }, { isDeleted: true, updatedBy: updater });
+    res.status(200).json({ success: true, message: "Assignment soft-deleted with cascade", data: null });
   } catch (err) { next(err); }
 };

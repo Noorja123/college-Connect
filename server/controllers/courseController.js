@@ -1,10 +1,11 @@
 import Course from '../models/Course.js';
+import Subject from '../models/Subject.js';
 
 export const createCourse = async (req, res, next) => {
   try {
     const { name, duration, department } = req.body;
     if (!name || !duration || !department) return res.status(400).json({ success: false, message: "Missing required fields", data: null });
-    const course = new Course({ name, duration, department });
+    const course = new Course({ name, duration, department, createdBy: req.user && req.user._id ? req.user._id : undefined });
     const saved = await course.save();
     res.status(201).json({ success: true, message: "Course created successfully", data: saved });
   } catch (err) { next(err); }
@@ -31,7 +32,8 @@ export const getCourseById = async (req, res, next) => {
 
 export const updateCourse = async (req, res, next) => {
   try {
-    const course = await Course.findOneAndUpdate({ _id: req.params.id, isDeleted: false }, req.body, { new: true, runValidators: true });
+    const payload = { ...req.body, updatedBy: req.user && req.user._id ? req.user._id : undefined };
+    const course = await Course.findOneAndUpdate({ _id: req.params.id, isDeleted: false }, payload, { new: true, runValidators: true });
     if (!course) return res.status(404).json({ success: false, message: "Course not found", data: null });
     res.status(200).json({ success: true, message: "Course updated successfully", data: course });
   } catch (err) { next(err); }
@@ -39,8 +41,13 @@ export const updateCourse = async (req, res, next) => {
 
 export const deleteCourse = async (req, res, next) => {
   try {
-    const course = await Course.findOneAndUpdate({ _id: req.params.id, isDeleted: false }, { isDeleted: true }, { new: true });
+    const updater = req.user && req.user._id ? req.user._id : undefined;
+    const course = await Course.findOneAndUpdate({ _id: req.params.id, isDeleted: false }, { isDeleted: true, updatedBy: updater }, { new: true });
     if (!course) return res.status(404).json({ success: false, message: "Course not found", data: null });
-    res.status(200).json({ success: true, message: "Course soft-deleted", data: null });
+    
+    // Cascading soft-delete
+    await Subject.updateMany({ courseId: course._id }, { isDeleted: true, updatedBy: updater });
+    
+    res.status(200).json({ success: true, message: "Course soft-deleted with cascade", data: null });
   } catch (err) { next(err); }
 };

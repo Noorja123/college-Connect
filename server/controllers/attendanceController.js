@@ -2,14 +2,16 @@ import AttendanceRecord from '../models/AttendanceRecord.js';
 
 export const createAttendance = async (req, res, next) => {
   try {
-    const { studentId, subjectId, date, status } = req.body;
-    if (!studentId || !subjectId || !date || !status) return res.status(400).json({ success: false, message: "Missing required fields", data: null });
-    const attendance = new AttendanceRecord({ studentId, subjectId, date, status });
+    const { subjectId, date, records } = req.body;
+    if (!subjectId || !date || !records || !Array.isArray(records)) {
+      return res.status(400).json({ success: false, message: "Missing required fields or records is not an array", data: null });
+    }
+    const attendance = new AttendanceRecord({ subjectId, date, records, createdBy: req.user && req.user._id ? req.user._id : undefined });
     const saved = await attendance.save();
-    const populated = await saved.populate(['studentId', 'subjectId']);
-    res.status(201).json({ success: true, message: "Attendance marked", data: populated });
+    const populated = await saved.populate(['subjectId', 'records.studentId']);
+    res.status(201).json({ success: true, message: "Attendance sheet marked successfully", data: populated });
   } catch (err) {
-    if (err.code === 11000) return res.status(400).json({ success: false, message: "Attendance already marked", data: null });
+    if (err.code === 11000) return res.status(400).json({ success: false, message: "Attendance sheet for this Date/Subject already exists", data: null });
     next(err);
   }
 };
@@ -20,34 +22,35 @@ export const getAttendanceRecords = async (req, res, next) => {
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
 
-    const records = await AttendanceRecord.find({ isDeleted: false })
-      .populate({ path: 'studentId', populate: { path: 'userId', select: 'name' } })
+    const sheets = await AttendanceRecord.find({ isDeleted: false })
       .populate('subjectId', 'name')
+      .populate('records.studentId')
       .skip(skip).limit(limit);
-    res.status(200).json({ success: true, message: "Attendance fetched", data: records });
+    res.status(200).json({ success: true, message: "Attendance sheets fetched", data: sheets });
   } catch (err) { next(err); }
 };
 
 export const getAttendanceById = async (req, res, next) => {
   try {
-    const record = await AttendanceRecord.findOne({ _id: req.params.id, isDeleted: false }).populate('studentId').populate('subjectId');
-    if (!record) return res.status(404).json({ success: false, message: "Record not found", data: null });
-    res.status(200).json({ success: true, message: "Record fetched", data: record });
+    const sheet = await AttendanceRecord.findOne({ _id: req.params.id, isDeleted: false }).populate('subjectId').populate('records.studentId');
+    if (!sheet) return res.status(404).json({ success: false, message: "Record not found", data: null });
+    res.status(200).json({ success: true, message: "Record fetched", data: sheet });
   } catch (err) { next(err); }
 };
 
 export const updateAttendance = async (req, res, next) => {
   try {
-    const record = await AttendanceRecord.findOneAndUpdate({ _id: req.params.id, isDeleted: false }, req.body, { new: true, runValidators: true }).populate('studentId').populate('subjectId');
-    if (!record) return res.status(404).json({ success: false, message: "Record not found", data: null });
-    res.status(200).json({ success: true, message: "Record updated", data: record });
+    const payload = { ...req.body, updatedBy: req.user && req.user._id ? req.user._id : undefined };
+    const sheet = await AttendanceRecord.findOneAndUpdate({ _id: req.params.id, isDeleted: false }, payload, { new: true, runValidators: true }).populate('subjectId').populate('records.studentId');
+    if (!sheet) return res.status(404).json({ success: false, message: "Record not found", data: null });
+    res.status(200).json({ success: true, message: "Record sheet updated", data: sheet });
   } catch (err) { next(err); }
 };
 
 export const deleteAttendance = async (req, res, next) => {
   try {
-    const record = await AttendanceRecord.findOneAndUpdate({ _id: req.params.id, isDeleted: false }, { isDeleted: true }, { new: true });
-    if (!record) return res.status(404).json({ success: false, message: "Record not found", data: null });
-    res.status(200).json({ success: true, message: "Record soft-deleted", data: null });
+    const sheet = await AttendanceRecord.findOneAndUpdate({ _id: req.params.id, isDeleted: false }, { isDeleted: true, updatedBy: req.user && req.user._id ? req.user._id : undefined }, { new: true });
+    if (!sheet) return res.status(404).json({ success: false, message: "Record not found", data: null });
+    res.status(200).json({ success: true, message: "Record sheet soft-deleted", data: null });
   } catch (err) { next(err); }
 };

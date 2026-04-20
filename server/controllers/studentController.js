@@ -1,10 +1,16 @@
 import Student from '../models/Student.js';
+import User from '../models/User.js';
 
 export const createStudent = async (req, res, next) => {
   try {
     const { userId, rollNumber, courseId, semester, division } = req.body;
     if (!userId || !rollNumber || !courseId || !semester || !division) return res.status(400).json({ success: false, message: "Missing required fields", data: null });
-    const student = new Student({ userId, rollNumber, courseId, semester, division });
+    
+    // Strict Role Enforcement
+    const user = await User.findById(userId);
+    if (!user || user.role !== 'student') return res.status(400).json({ success: false, message: "Linked user must be a student", data: null });
+    
+    const student = new Student({ userId, rollNumber, courseId, semester, division, createdBy: req.user && req.user._id ? req.user._id : undefined });
     const saved = await student.save();
     const populated = await saved.populate(['userId', 'courseId']);
     res.status(201).json({ success: true, message: "Student enrolled successfully", data: populated });
@@ -38,7 +44,8 @@ export const getStudentById = async (req, res, next) => {
 
 export const updateStudent = async (req, res, next) => {
   try {
-    const student = await Student.findOneAndUpdate({ _id: req.params.id, isDeleted: false }, req.body, { new: true, runValidators: true }).populate('userId', 'name email role').populate('courseId');
+    const payload = { ...req.body, updatedBy: req.user && req.user._id ? req.user._id : undefined };
+    const student = await Student.findOneAndUpdate({ _id: req.params.id, isDeleted: false }, payload, { new: true, runValidators: true }).populate('userId', 'name email role').populate('courseId');
     if (!student) return res.status(404).json({ success: false, message: "Student not found", data: null });
     res.status(200).json({ success: true, message: "Student updated", data: student });
   } catch (err) { next(err); }
@@ -46,7 +53,7 @@ export const updateStudent = async (req, res, next) => {
 
 export const deleteStudent = async (req, res, next) => {
   try {
-    const student = await Student.findOneAndUpdate({ _id: req.params.id, isDeleted: false }, { isDeleted: true }, { new: true });
+    const student = await Student.findOneAndUpdate({ _id: req.params.id, isDeleted: false }, { isDeleted: true, updatedBy: req.user && req.user._id ? req.user._id : undefined }, { new: true });
     if (!student) return res.status(404).json({ success: false, message: "Student not found", data: null });
     res.status(200).json({ success: true, message: "Student soft-deleted", data: null });
   } catch (err) { next(err); }

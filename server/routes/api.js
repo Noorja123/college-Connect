@@ -5,6 +5,7 @@ import { createStudent, getStudents, getStudentById, updateStudent, deleteStuden
 import { createTeacher, getTeachers, getTeacherById, updateTeacher, deleteTeacher } from '../controllers/teacherController.js';
 import { createCourse, getCourses, getCourseById, updateCourse, deleteCourse } from '../controllers/courseController.js';
 import { createSubject, getSubjects, getSubjectById, updateSubject, deleteSubject } from '../controllers/subjectController.js';
+import { createEnrollment, getEnrollments, getEnrollmentById, deleteEnrollment } from '../controllers/enrollmentController.js';
 import { createAssignment, getAssignments, getAssignmentById, updateAssignment, deleteAssignment } from '../controllers/assignmentController.js';
 import { createSubmission, getSubmissions, getSubmissionById, updateSubmission, deleteSubmission } from '../controllers/submissionController.js';
 import { createAttendance, getAttendanceRecords, getAttendanceById, updateAttendance, deleteAttendance } from '../controllers/attendanceController.js';
@@ -38,6 +39,10 @@ router.route('/courses/:id').get(getCourseById).put(adminOnly, updateCourse).del
 // Subjects
 router.route('/subjects').post(adminOnly, createSubject).get(getSubjects);
 router.route('/subjects/:id').get(getSubjectById).put(adminOnly, updateSubject).delete(adminOnly, deleteSubject);
+
+// Enrollments
+router.route('/enrollments').post(adminOnly, createEnrollment).get(getEnrollments);
+router.route('/enrollments/:id').get(getEnrollmentById).delete(adminOnly, deleteEnrollment);
 
 // Assignments
 router.route('/assignments').post(teacherOrAdmin, createAssignment).get(getAssignments);
