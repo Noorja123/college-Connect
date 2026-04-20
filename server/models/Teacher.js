@@ -1,15 +1,10 @@
 import mongoose from 'mongoose';
 
 const teacherSchema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-  teacherId: { type: String, required: true, unique: true },
-  department: { type: String, required: true },
-  subjects: [{ type: String }],
-  name: { type: String, required: true },
-  email: { type: String, required: true, unique: true }
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
+  department: { type: String, required: true, index: true },
+  subjects: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Subject' }],
+  isDeleted: { type: Boolean, default: false, index: true }
 }, { timestamps: true });
-
-teacherSchema.set('toJSON', { virtuals: true });
-teacherSchema.set('toObject', { virtuals: true });
 
 export default mongoose.model('Teacher', teacherSchema);

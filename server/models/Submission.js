@@ -1,17 +1,12 @@
 import mongoose from 'mongoose';
 
 const submissionSchema = new mongoose.Schema({
-  studentId: { type: String, required: true },
-  studentName: { type: String, required: true },
-  assignmentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Assignment', required: true },
-  assignmentTitle: { type: String, required: true },
-  submittedAt: { type: Date, default: Date.now },
-  grade: { type: Number, default: null },
-  feedback: { type: String, default: '' },
-  status: { type: String, enum: ['submitted', 'graded', 'late'], default: 'submitted' }
+  assignmentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Assignment', required: true, index: true },
+  studentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Student', required: true, index: true },
+  fileUrl: { type: String, required: true },
+  marks: { type: Number, default: null },
+  feedback: { type: String, default: null },
+  isDeleted: { type: Boolean, default: false, index: true }
 }, { timestamps: true });
-
-submissionSchema.set('toJSON', { virtuals: true });
-submissionSchema.set('toObject', { virtuals: true });
 
 export default mongoose.model('Submission', submissionSchema);

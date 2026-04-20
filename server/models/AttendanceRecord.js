@@ -1,14 +1,13 @@
 import mongoose from 'mongoose';
 
 const attendanceRecordSchema = new mongoose.Schema({
-  studentId: { type: String, required: true },
-  studentName: { type: String, required: true },
-  subject: { type: String, required: true },
-  date: { type: Date, required: true },
-  status: { type: String, enum: ['present', 'absent', 'late'], required: true }
+  studentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Student', required: true, index: true },
+  subjectId: { type: mongoose.Schema.Types.ObjectId, ref: 'Subject', required: true, index: true },
+  date: { type: Date, required: true, index: true },
+  status: { type: String, enum: ["present", "absent"], required: true, index: true },
+  isDeleted: { type: Boolean, default: false, index: true }
 }, { timestamps: true });
 
-attendanceRecordSchema.set('toJSON', { virtuals: true });
-attendanceRecordSchema.set('toObject', { virtuals: true });
+attendanceRecordSchema.index({ studentId: 1, subjectId: 1, date: 1 }, { unique: true });
 
 export default mongoose.model('AttendanceRecord', attendanceRecordSchema);

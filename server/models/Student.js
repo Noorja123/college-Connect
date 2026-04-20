@@ -1,16 +1,12 @@
 import mongoose from 'mongoose';
 
 const studentSchema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-  studentId: { type: String, required: true, unique: true },
-  department: { type: String, required: true },
-  course: { type: String, required: true },
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
+  rollNumber: { type: String, required: true, unique: true, index: true },
+  courseId: { type: mongoose.Schema.Types.ObjectId, ref: 'Course', required: true, index: true },
   semester: { type: Number, required: true },
-  name: { type: String, required: true },
-  email: { type: String, required: true, unique: true }
+  division: { type: String, required: true },
+  isDeleted: { type: Boolean, default: false, index: true }
 }, { timestamps: true });
-
-studentSchema.set('toJSON', { virtuals: true });
-studentSchema.set('toObject', { virtuals: true });
 
 export default mongoose.model('Student', studentSchema);
